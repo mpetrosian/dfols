@@ -31,10 +31,21 @@ import scipy.linalg as LA
 import sys
 
 
-__all__ = ['sumsq', 'eval_least_squares_objective', 'model_value', 'random_orthog_directions_within_bounds',
-           'random_directions_within_bounds', 'apply_scaling', 'remove_scaling', 'pbox', 'pball', 'dykstra', 'qr_rank']
+__all__ = [
+    "sumsq",
+    "eval_least_squares_objective",
+    "model_value",
+    "random_orthog_directions_within_bounds",
+    "random_directions_within_bounds",
+    "apply_scaling",
+    "remove_scaling",
+    "pbox",
+    "pball",
+    "dykstra",
+    "qr_rank",
+]
 
-module_logger = logging.getLogger(__name__) 
+module_logger = logging.getLogger(__name__)
 
 
 def sumsq(x):
@@ -47,7 +58,16 @@ def sumsq(x):
     return np.dot(x, x)
 
 
-def eval_least_squares_objective(objfun, x, args=(), verbose=True, eval_num=0, pt_num=0, full_x_thresh=6, check_for_overflow=True):
+def eval_least_squares_objective(
+    objfun,
+    x,
+    args=(),
+    verbose=True,
+    eval_num=0,
+    pt_num=0,
+    full_x_thresh=6,
+    check_for_overflow=True,
+):
     # Evaluate least squares function
     fvec = objfun(x, *args)
 
@@ -64,9 +84,16 @@ def eval_least_squares_objective(objfun, x, args=(), verbose=True, eval_num=0, p
 
     if verbose:
         if len(x) < full_x_thresh:
-            module_logger.info("Function eval %i at point %i has f = %.15g at x = " % (eval_num, pt_num, f) + str(x))
+            module_logger.info(
+                "Function eval %i at point %i has f = %.15g at x = "
+                % (eval_num, pt_num, f)
+                + str(x)
+            )
         else:
-            module_logger.info("Function eval %i at point %i has f = %.15g at x = [...]" % (eval_num, pt_num, f))
+            module_logger.info(
+                "Function eval %i at point %i has f = %.15g at x = [...]"
+                % (eval_num, pt_num, f)
+            )
 
     return fvec, f
 
@@ -75,7 +102,7 @@ def model_value(g, H, s):
     # Calculate model value (s^T * g + 0.5* s^T * H * s) = s^T * (gopt + 0.5 * H*s)
     assert g.shape == s.shape, "g and s have incompatible sizes"
     Hs = H.dot(s)
-    return np.dot(s, g + 0.5*Hs)
+    return np.dot(s, g + 0.5 * Hs)
 
 
 def get_scale(dirn, delta, lower, upper):
@@ -88,7 +115,9 @@ def get_scale(dirn, delta, lower, upper):
     return scale
 
 
-def random_orthog_directions_within_bounds(num_pts, delta, lower, upper, with_neg_dirns=True):
+def random_orthog_directions_within_bounds(
+    num_pts, delta, lower, upper, with_neg_dirns=True
+):
     # Generate num_pts random directions d1, d2, ...
     # so that lower <= d1 <= upper and ||d1|| ~ delta [perhaps not equal if constraint active]
     # Try to encourage a 'star shape' of orthogonal directions first
@@ -102,12 +131,12 @@ def random_orthog_directions_within_bounds(num_pts, delta, lower, upper, with_ne
     assert delta > 0, "delta must be strictly positive"
     assert num_pts > 0, "num_pts must be strictly positive"
     if with_neg_dirns:
-        results = np.zeros((n, max(2*n, num_pts)))  # save space for results
+        results = np.zeros((n, max(2 * n, num_pts)))  # save space for results
     else:
         results = np.zeros((n, max(n, num_pts)))  # save space for results
     # Find the active set
-    idx_l = (lower == 0)
-    idx_u = (upper == 0)
+    idx_l = lower == 0
+    idx_u = upper == 0
     active = np.logical_or(idx_l, idx_u)
     inactive = np.logical_not(active)
     nactive = np.sum(active)
@@ -120,40 +149,46 @@ def random_orthog_directions_within_bounds(num_pts, delta, lower, upper, with_ne
         Q[inactive, :] = Qred  # zero change for active variables
         # 1. Orthogonal directions
         for i in range(ninactive):
-            scale = get_scale(Q[:,i], delta, lower, upper)
+            scale = get_scale(Q[:, i], delta, lower, upper)
             results[:, i] = scale * Q[:, i]
     # 2. Directions for active constraints
     idx_active = np.where(active)[0]  # indices of active constraints
     for i in range(nactive):
         idx = idx_active[i]
-        results[idx, ninactive+i] = 1.0 if idx_l[idx] else -1.0
-        results[:, ninactive+i] = get_scale(results[:, ninactive+i], delta, lower, upper) * results[:, ninactive+i]
+        results[idx, ninactive + i] = 1.0 if idx_l[idx] else -1.0
+        results[:, ninactive + i] = (
+            get_scale(results[:, ninactive + i], delta, lower, upper)
+            * results[:, ninactive + i]
+        )
     # 3. Negative orthogonal directions
     if with_neg_dirns:
         for i in range(ninactive):
             scale = get_scale(-Q[:, i], delta, lower, upper)
-            results[:, n+i] = -scale * Q[:, i]
+            results[:, n + i] = -scale * Q[:, i]
         # 4. Extra directions for active constraints
         for i in range(nactive):
             idx = idx_active[i]
             sign = 1.0 if idx_l[idx] else -1.0  # desired sign of direction shift
             if upper[idx] - lower[idx] > delta:
-                results[idx, n+ninactive+i] = 2.0 * sign * delta
+                results[idx, n + ninactive + i] = 2.0 * sign * delta
             else:
                 results[idx, n + ninactive + i] = 0.5 * sign * (upper[idx] - lower[idx])
                 # To get correct scaling, don't use delta any more (too big), use the scaling as given by upper-lower
-            results[:, n+ninactive+i] = get_scale(results[:, n+ninactive+i], 1.0, lower, upper)*results[:, n+ninactive+i]
+            results[:, n + ninactive + i] = (
+                get_scale(results[:, n + ninactive + i], 1.0, lower, upper)
+                * results[:, n + ninactive + i]
+            )
     # 5. Pad out the rest with random extra directions
-    for i in range(num_pts - (2*n if with_neg_dirns else n)):
+    for i in range(num_pts - (2 * n if with_neg_dirns else n)):
         dirn = np.random.normal(size=(n,))
         for j in range(nactive):
             idx = idx_active[j]
             sign = 1.0 if idx_l[idx] else -1.0  # desired sign of direction shift
-            if dirn[idx]*sign < 0.0:
+            if dirn[idx] * sign < 0.0:
                 dirn[idx] *= -1.0
         dirn = dirn / np.linalg.norm(dirn)
         scale = get_scale(dirn, delta, lower, upper)
-        results[:, (2*n if with_neg_dirns else n)+i] = dirn * scale
+        results[:, (2 * n if with_neg_dirns else n) + i] = dirn * scale
     # Finally, make sure everything is within bounds
     for i in range(num_pts):
         results[:, i] = np.maximum(np.minimum(results[:, i], upper), lower)
@@ -174,8 +209,8 @@ def random_directions_within_bounds(num_pts, delta, lower, upper):
     assert num_pts > 0, "num_pts must be strictly positive"
     results = np.zeros((n, num_pts))  # save space for results
     # Find the active set
-    idx_l = (lower == 0)
-    idx_u = (upper == 0)
+    idx_l = lower == 0
+    idx_u = upper == 0
     active = np.logical_or(idx_l, idx_u)
     # inactive = np.logical_not(active)
     nactive = np.sum(active)
@@ -186,7 +221,7 @@ def random_directions_within_bounds(num_pts, delta, lower, upper):
         for j in range(nactive):
             idx = idx_active[j]
             sign = 1.0 if idx_l[idx] else -1.0  # desired sign of direction shift
-            if dirn[idx]*sign < 0.0:
+            if dirn[idx] * sign < 0.0:
                 dirn[idx] *= -1.0
         dirn = dirn / np.linalg.norm(dirn)
         scale = get_scale(dirn, delta, lower, upper)
@@ -211,49 +246,52 @@ def remove_scaling(x_scaled, scaling_changes):
     return shift + x_scaled * scale
 
 
-def dykstra(P,x0,max_iter=100,tol=1e-10):
+def dykstra(P, x0, max_iter=100, tol=1e-10):
     x = x0.copy()
     p = len(P)
-    y = np.zeros((p,x0.shape[0]))
+    y = np.zeros((p, x0.shape[0]))
 
     n = 0
-    cI = float('inf')
+    cI = float("inf")
     while n < max_iter and cI >= tol:
         cI = 0
-        for i in range(0,p):
+        for i in range(0, p):
             # Update iterate
             prev_x = x.copy()
-            x = P[i](prev_x - y[i,:])
+            x = P[i](prev_x - y[i, :])
 
             # Update increment
-            prev_y = y[i,:].copy()
-            y[i,:] = x - (prev_x - prev_y)
+            prev_y = y[i, :].copy()
+            y[i, :] = x - (prev_x - prev_y)
 
             # Stop condition
-            cI += np.linalg.norm(prev_y - y[i,:])**2
+            cI += np.linalg.norm(prev_y - y[i, :]) ** 2
 
         n += 1
 
     return x
 
 
-def pball(x,c,r):
-    return c + (r/np.max([np.linalg.norm(x-c),r]))*(x-c)
+def pball(x, c, r):
+    return c + (r / np.max([np.linalg.norm(x - c), r])) * (x - c)
 
 
-def pbox(x,l,u):
-    return np.minimum(np.maximum(x,l), u)
+def pbox(x, l, u):
+    return np.minimum(np.maximum(x, l), u)
 
-'''
+
+"""
 Calculates rank of square matrix with QR.
 We use the fact that the rank of a square matrix A
 can be given by the number of nonzero diagonal elements of
 R in the QR factorization of A.
-'''
-def qr_rank(A,tol=1e-15):
-    m,n = A.shape
+"""
+
+
+def qr_rank(A, tol=1e-15):
+    m, n = A.shape
     assert m == n, "Input matrix must be square"
-    Q,R = LA.qr(A)
+    Q, R = LA.qr(A)
     D = np.abs(np.diag(R))
-    rank = np.sum(D > tol) 
+    rank = np.sum(D > tol)
     return rank, D

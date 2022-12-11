@@ -38,14 +38,15 @@ def rosenbrock(x):
 
 
 def rosenbrock_jacobian(x):
-    return np.array([[-20.0*x[0], 10.0], [-1.0, 0.0]])
+    return np.array([[-20.0 * x[0], 10.0], [-1.0, 0.0]])
 
 
-def p_box(x,l,u):
-    return np.minimum(np.maximum(x,l), u)
+def p_box(x, l, u):
+    return np.minimum(np.maximum(x, l), u)
 
-def p_ball(x,c,r):
-    return c + (r/np.max([np.linalg.norm(x-c),r]))*(x-c)
+
+def p_ball(x, c, r):
+    return c + (r / np.max([np.linalg.norm(x - c), r])) * (x - c)
 
 
 class TestNans(unittest.TestCase):
@@ -59,7 +60,9 @@ class TestNans(unittest.TestCase):
         self.assertEqual(soln.flag, soln.EXIT_LINALG_ERROR, "Wrong error message")
         # Second attempt: throw error when trying to interpolate
         with self.assertRaises(np.linalg.LinAlgError):
-            soln = dfols.solve(r_error, x0, user_params={"interpolation.throw_error_on_nans": True})
+            soln = dfols.solve(
+                r_error, x0, user_params={"interpolation.throw_error_on_nans": True}
+            )
 
 
 class TestRosenbrockGeneric(unittest.TestCase):
@@ -70,10 +73,17 @@ class TestRosenbrockGeneric(unittest.TestCase):
         np.random.seed(0)
         soln = dfols.solve(rosenbrock, x0)
         # print(soln.x)
-        self.assertTrue(array_compare(soln.x, np.array([1.0, 1.0]), thresh=1e-4), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid")
+        self.assertTrue(
+            array_compare(soln.x, np.array([1.0, 1.0]), thresh=1e-4), "Wrong xmin"
+        )
+        self.assertTrue(
+            array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid"
+        )
         # print(soln.jacobian, rosenbrock_jacobian(soln.x))
-        self.assertTrue(array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=2e-1), "Wrong Jacobian")
+        self.assertTrue(
+            array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=2e-1),
+            "Wrong Jacobian",
+        )
         self.assertTrue(abs(soln.f) < 1e-10, "Wrong fmin")
 
 
@@ -89,8 +99,13 @@ class TestRosenbrockBounds(unittest.TestCase):
         soln = dfols.solve(rosenbrock, x0, bounds=(lower, upper))
         print(soln.x)
         self.assertTrue(array_compare(soln.x, xmin, thresh=1e-2), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid")
-        self.assertTrue(array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=1e-2), "Wrong Jacobian")
+        self.assertTrue(
+            array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid"
+        )
+        self.assertTrue(
+            array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=1e-2),
+            "Wrong Jacobian",
+        )
         self.assertTrue(abs(soln.f - fmin) < 1e-4, "Wrong fmin")
 
 
@@ -108,7 +123,9 @@ class TestRosenbrockBounds2(unittest.TestCase):
         print(soln.x)
         self.assertTrue(array_compare(soln.x, xmin, thresh=1e-2), "Wrong xmin")
         self.assertTrue(abs(soln.f - fmin) < 1e-4, "Wrong fmin")
-        self.assertTrue(array_compare(soln.jacobian, jacmin, thresh=2e-2), "Wrong jacobian")
+        self.assertTrue(
+            array_compare(soln.jacobian, jacmin, thresh=2e-2), "Wrong jacobian"
+        )
 
 
 class TestLinear(unittest.TestCase):
@@ -124,7 +141,9 @@ class TestLinear(unittest.TestCase):
         x0 = np.zeros((n,))
         soln = dfols.solve(objfun, x0)
         self.assertTrue(array_compare(soln.x, xmin, thresh=1e-2), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, objfun(soln.x), thresh=1e-10), "Wrong resid")
+        self.assertTrue(
+            array_compare(soln.resid, objfun(soln.x), thresh=1e-10), "Wrong resid"
+        )
         self.assertTrue(array_compare(soln.jacobian, A, thresh=1e-2), "Wrong Jacobian")
         self.assertTrue(abs(soln.f - fmin) < 1e-4, "Wrong fmin")
 
@@ -135,9 +154,16 @@ class TestRosenbrockRegression(unittest.TestCase):
         # n, m = 2, 2
         x0 = np.array([-1.2, 1.0])
         soln = dfols.solve(rosenbrock, x0, npt=5)
-        self.assertTrue(array_compare(soln.x, np.array([1.0, 1.0]), thresh=1e-4), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid")
-        self.assertTrue(array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=1.5e-1), "Wrong Jacobian")
+        self.assertTrue(
+            array_compare(soln.x, np.array([1.0, 1.0]), thresh=1e-4), "Wrong xmin"
+        )
+        self.assertTrue(
+            array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid"
+        )
+        self.assertTrue(
+            array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=1.5e-1),
+            "Wrong Jacobian",
+        )
         self.assertTrue(abs(soln.f) < 1e-10, "Wrong fmin")
 
 
@@ -147,11 +173,18 @@ class TestRosenbrockGrowing(unittest.TestCase):
         # n, m = 2, 2
         x0 = np.array([-1.2, 1.0])
         soln = dfols.solve(rosenbrock, x0, user_params={"growing.ndirs_initial": 1})
-        self.assertTrue(array_compare(soln.x, np.array([1.0, 1.0]), thresh=1e-4), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid")
+        self.assertTrue(
+            array_compare(soln.x, np.array([1.0, 1.0]), thresh=1e-4), "Wrong xmin"
+        )
+        self.assertTrue(
+            array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid"
+        )
         print(soln.jacobian)
         print(rosenbrock_jacobian(soln.x))
-        self.assertTrue(array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=3e-0), "Wrong Jacobian")
+        self.assertTrue(
+            array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=3e-0),
+            "Wrong Jacobian",
+        )
         self.assertTrue(abs(soln.f) < 1e-10, "Wrong fmin")
 
 
@@ -159,18 +192,36 @@ class TestInverseProblem(unittest.TestCase):
     # Minimise an inverse problem
     def runTest(self):
         # Simple problem with global minimum at the origin, for instance
-        objfun = lambda x: np.array([np.sin(x[0])**2, np.sin(x[1])**2, np.sum(np.sin(x[2:]**2))])
-        jac = lambda x: np.array([[2*np.sin(x[0])*np.cos(x[0]), 0, 0, 0, 0], 
-                                  [0, 2*np.sin(x[1])*np.cos(x[1]), 0, 0, 0], 
-                                  [0, 0, 2*np.sin(x[2])*np.cos(x[2]), 2*np.sin(x[3])*np.cos(x[3]), 2*np.sin(x[4])*np.cos(x[4])]])  # for n=5 only
+        objfun = lambda x: np.array(
+            [np.sin(x[0]) ** 2, np.sin(x[1]) ** 2, np.sum(np.sin(x[2:] ** 2))]
+        )
+        jac = lambda x: np.array(
+            [
+                [2 * np.sin(x[0]) * np.cos(x[0]), 0, 0, 0, 0],
+                [0, 2 * np.sin(x[1]) * np.cos(x[1]), 0, 0, 0],
+                [
+                    0,
+                    0,
+                    2 * np.sin(x[2]) * np.cos(x[2]),
+                    2 * np.sin(x[3]) * np.cos(x[3]),
+                    2 * np.sin(x[4]) * np.cos(x[4]),
+                ],
+            ]
+        )  # for n=5 only
         x0 = np.ones((5,))
         np.random.seed(0)
         soln = dfols.solve(objfun, x0)
-        self.assertTrue(array_compare(soln.x, np.zeros((5,)), thresh=1e-3), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, objfun(soln.x), thresh=1e-10), "Wrong resid")
+        self.assertTrue(
+            array_compare(soln.x, np.zeros((5,)), thresh=1e-3), "Wrong xmin"
+        )
+        self.assertTrue(
+            array_compare(soln.resid, objfun(soln.x), thresh=1e-10), "Wrong resid"
+        )
         print(soln.jacobian)
         print(jac(soln.x))
-        self.assertTrue(array_compare(soln.jacobian, jac(soln.x), thresh=1e-2), "Wrong Jacobian")
+        self.assertTrue(
+            array_compare(soln.jacobian, jac(soln.x), thresh=1e-2), "Wrong Jacobian"
+        )
         self.assertTrue(abs(soln.f) < 1e-10, "Wrong fmin")
 
 
@@ -178,18 +229,36 @@ class TestInverseProblemGrowing(unittest.TestCase):
     # Minimise an inverse problem, with growing
     def runTest(self):
         # Simple problem with global minimum at the origin, for instance
-        objfun = lambda x: np.array([np.sin(x[0])**2, np.sin(x[1])**2, np.sum(np.sin(x[2:]**2))])
-        jac = lambda x: np.array([[2*np.sin(x[0])*np.cos(x[0]), 0, 0, 0, 0], 
-                                  [0, 2*np.sin(x[1])*np.cos(x[1]), 0, 0, 0], 
-                                  [0, 0, 2*np.sin(x[2])*np.cos(x[2]), 2*np.sin(x[3])*np.cos(x[3]), 2*np.sin(x[4])*np.cos(x[4])]])  # for n=5 only
+        objfun = lambda x: np.array(
+            [np.sin(x[0]) ** 2, np.sin(x[1]) ** 2, np.sum(np.sin(x[2:] ** 2))]
+        )
+        jac = lambda x: np.array(
+            [
+                [2 * np.sin(x[0]) * np.cos(x[0]), 0, 0, 0, 0],
+                [0, 2 * np.sin(x[1]) * np.cos(x[1]), 0, 0, 0],
+                [
+                    0,
+                    0,
+                    2 * np.sin(x[2]) * np.cos(x[2]),
+                    2 * np.sin(x[3]) * np.cos(x[3]),
+                    2 * np.sin(x[4]) * np.cos(x[4]),
+                ],
+            ]
+        )  # for n=5 only
         x0 = np.ones((5,))
         np.random.seed(0)
-        soln = dfols.solve(objfun, x0, user_params={'growing.ndirs_initial':2})
-        self.assertTrue(array_compare(soln.x, np.zeros((5,)), thresh=1e-3), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, objfun(soln.x), thresh=1e-10), "Wrong resid")
+        soln = dfols.solve(objfun, x0, user_params={"growing.ndirs_initial": 2})
+        self.assertTrue(
+            array_compare(soln.x, np.zeros((5,)), thresh=1e-3), "Wrong xmin"
+        )
+        self.assertTrue(
+            array_compare(soln.resid, objfun(soln.x), thresh=1e-10), "Wrong resid"
+        )
         print(soln.jacobian)
         print(jac(soln.x))
-        self.assertTrue(array_compare(soln.jacobian, jac(soln.x), thresh=1e-1), "Wrong Jacobian")
+        self.assertTrue(
+            array_compare(soln.jacobian, jac(soln.x), thresh=1e-1), "Wrong Jacobian"
+        )
         self.assertTrue(abs(soln.f) < 1e-10, "Wrong fmin")
 
 
@@ -200,13 +269,18 @@ class TestRosenbrockBoxBall(unittest.TestCase):
         x0 = np.array([-1.2, 0.7])  # standard start point does not satisfy bounds
         lower = np.array([0.7, -2.0])
         upper = np.array([1.0, 2])
-        boxproj = lambda x: p_box(x,lower,upper)
-        ballproj = lambda x: p_ball(x,np.array([0.5,1]),0.25)
+        boxproj = lambda x: p_box(x, lower, upper)
+        ballproj = lambda x: p_ball(x, np.array([0.5, 1]), 0.25)
         xmin = np.array([0.70424386, 0.85583188])  # approximate
         fmin = np.dot(rosenbrock(xmin), rosenbrock(xmin))
-        soln = dfols.solve(rosenbrock, x0, projections=[boxproj,ballproj])
+        soln = dfols.solve(rosenbrock, x0, projections=[boxproj, ballproj])
         print(soln.x)
         self.assertTrue(array_compare(soln.x, xmin, thresh=1e-2), "Wrong xmin")
-        self.assertTrue(array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid")
-        self.assertTrue(array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=1e-2), "Wrong Jacobian")
+        self.assertTrue(
+            array_compare(soln.resid, rosenbrock(soln.x), thresh=1e-10), "Wrong resid"
+        )
+        self.assertTrue(
+            array_compare(soln.jacobian, rosenbrock_jacobian(soln.x), thresh=1e-2),
+            "Wrong Jacobian",
+        )
         self.assertTrue(abs(soln.f - fmin) < 1e-4, "Wrong fmin")

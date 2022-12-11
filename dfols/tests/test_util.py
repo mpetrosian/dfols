@@ -37,17 +37,17 @@ class TestSumsq(unittest.TestCase):
     def runTest(self):
         n = 10
         x = np.sin(np.arange(n))
-        normx = np.sum(x**2)
-        self.assertAlmostEqual(normx, sumsq(x), msg='Wrong answer')
+        normx = np.sum(x ** 2)
+        self.assertAlmostEqual(normx, sumsq(x), msg="Wrong answer")
 
 
 class TestEval(unittest.TestCase):
     def runTest(self):
-        objfun = lambda x : np.array([10*(x[1]-x[0]**2), 1-x[0]])
+        objfun = lambda x: np.array([10 * (x[1] - x[0] ** 2), 1 - x[0]])
         x = np.array([-1.2, 1.0])
         fvec, f = eval_least_squares_objective(objfun, x)
-        self.assertTrue(np.all(fvec == objfun(x)), 'Residuals wrong')
-        self.assertAlmostEqual(f, sumsq(fvec), msg='Sum of squares wrong')
+        self.assertTrue(np.all(fvec == objfun(x)), "Residuals wrong")
+        self.assertAlmostEqual(f, sumsq(fvec), msg="Sum of squares wrong")
 
 
 class TestModelValue(unittest.TestCase):
@@ -56,9 +56,9 @@ class TestModelValue(unittest.TestCase):
         A = np.arange(n ** 2, dtype=float).reshape((n, n))
         H = np.sin(A + A.T)  # force symmetric
         vec = np.exp(np.arange(n, dtype=float))
-        g = np.cos(3*np.arange(n, dtype=float) - 2.0)
+        g = np.cos(3 * np.arange(n, dtype=float) - 2.0)
         mval = np.dot(g, vec) + 0.5 * np.dot(vec, np.dot(H, vec))
-        self.assertAlmostEqual(mval, model_value(g, H, vec), msg='Wrong value')
+        self.assertAlmostEqual(mval, model_value(g, H, vec), msg="Wrong value")
 
 
 class TestRandom(unittest.TestCase):
@@ -70,13 +70,26 @@ class TestRandom(unittest.TestCase):
         delta = 1.0
         dirns = random_orthog_directions_within_bounds(num_pts, delta, lower, upper)
         for i in range(num_pts):
-            self.assertTrue(np.linalg.norm(dirns[i, :]) <= delta + 1e-10, "Unconstrained: dirn %i too long" % i)
-            self.assertTrue(np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i)
-            self.assertTrue(np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i)
+            self.assertTrue(
+                np.linalg.norm(dirns[i, :]) <= delta + 1e-10,
+                "Unconstrained: dirn %i too long" % i,
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i
+            )
         for i in range(n):
-            self.assertTrue(array_compare(dirns[i, :], -dirns[n+i,:]), "Second set should be -ve first set")
-        for i in range(2*n-1):
-            self.assertTrue(abs(np.dot(dirns[i, :], dirns[i+1, :])) < 1e-10, "First 2n directions should be orthog")
+            self.assertTrue(
+                array_compare(dirns[i, :], -dirns[n + i, :]),
+                "Second set should be -ve first set",
+            )
+        for i in range(2 * n - 1):
+            self.assertTrue(
+                abs(np.dot(dirns[i, :], dirns[i + 1, :])) < 1e-10,
+                "First 2n directions should be orthog",
+            )
 
 
 class TestRandomBox(unittest.TestCase):
@@ -90,8 +103,12 @@ class TestRandomBox(unittest.TestCase):
         # print(dirns)
         for i in range(num_pts):
             # self.assertTrue(np.linalg.norm(dirns[i, :]) <= delta + 1e-10, "Unconstrained: dirn %i too long" % i)
-            self.assertTrue(np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i)
-            self.assertTrue(np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i)
+            self.assertTrue(
+                np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i
+            )
         # for i in range(n):
         #     self.assertTrue(array_compare(dirns[i, :], -dirns[n+i,:]), "Second set should be -ve first set")
         # for i in range(2*n-1):
@@ -105,13 +122,25 @@ class TestRandomShort(unittest.TestCase):
         upper = 10.0 * np.ones((n,))
         num_pts = 2 * n + 4
         delta = 1.0
-        dirns = random_orthog_directions_within_bounds(num_pts, delta, lower, upper, with_neg_dirns=False)
+        dirns = random_orthog_directions_within_bounds(
+            num_pts, delta, lower, upper, with_neg_dirns=False
+        )
         for i in range(num_pts):
-            self.assertTrue(np.linalg.norm(dirns[i, :]) <= delta + 1e-10, "Unconstrained: dirn %i too long" % i)
-            self.assertTrue(np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i)
-            self.assertTrue(np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i)
-        for i in range(n-1):
-            self.assertTrue(abs(np.dot(dirns[i, :], dirns[i+1, :])) < 1e-10, "First n directions should be orthog")
+            self.assertTrue(
+                np.linalg.norm(dirns[i, :]) <= delta + 1e-10,
+                "Unconstrained: dirn %i too long" % i,
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i
+            )
+        for i in range(n - 1):
+            self.assertTrue(
+                abs(np.dot(dirns[i, :], dirns[i + 1, :])) < 1e-10,
+                "First n directions should be orthog",
+            )
         # print(dirns)
         # self.assertTrue(False, "bad")
 
@@ -123,12 +152,18 @@ class TestRandomBoxShort(unittest.TestCase):
         upper = np.array([10.0, 10.0, 0.2, 10.0, 0.0])
         num_pts = 2 * n + 4
         delta = 1.0
-        dirns = random_orthog_directions_within_bounds(num_pts, delta, lower, upper, with_neg_dirns=False)
+        dirns = random_orthog_directions_within_bounds(
+            num_pts, delta, lower, upper, with_neg_dirns=False
+        )
         # print(dirns)
         for i in range(num_pts):
             # self.assertTrue(np.linalg.norm(dirns[i, :]) <= delta + 1e-10, "Unconstrained: dirn %i too long" % i)
-            self.assertTrue(np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i)
-            self.assertTrue(np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i)
+            self.assertTrue(
+                np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i
+            )
         # for i in range(n):
         #     self.assertTrue(array_compare(dirns[i, :], -dirns[n+i,:]), "Second set should be -ve first set")
         # for i in range(2*n-1):
@@ -145,9 +180,16 @@ class TestRandomNotOrthog(unittest.TestCase):
         delta = 1.0
         dirns = random_directions_within_bounds(num_pts, delta, lower, upper)
         for i in range(num_pts):
-            self.assertTrue(np.linalg.norm(dirns[i, :]) <= delta + 1e-10, "Unconstrained: dirn %i too long" % i)
-            self.assertTrue(np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i)
-            self.assertTrue(np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i)
+            self.assertTrue(
+                np.linalg.norm(dirns[i, :]) <= delta + 1e-10,
+                "Unconstrained: dirn %i too long" % i,
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i
+            )
         # print(dirns)
         # self.assertTrue(False, "bad")
 
@@ -162,34 +204,35 @@ class TestRandomNotOrthogBox(unittest.TestCase):
         dirns = random_directions_within_bounds(num_pts, delta, lower, upper)
         # print(dirns)
         for i in range(num_pts):
-            self.assertTrue(np.linalg.norm(dirns[i, :]) <= delta + 1e-10, "Unconstrained: dirn %i too long" % i)
-            self.assertTrue(np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i)
-            self.assertTrue(np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i)
+            self.assertTrue(
+                np.linalg.norm(dirns[i, :]) <= delta + 1e-10,
+                "Unconstrained: dirn %i too long" % i,
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] >= lower), "Direction %i below lower bound" % i
+            )
+            self.assertTrue(
+                np.all(dirns[i, :] <= upper), "Direction %i above upper bound" % i
+            )
         # self.assertTrue(False, "bad")
+
 
 # Trivial case of full rank
 class TestMatrixRankQR1(unittest.TestCase):
     def runTest(self):
         mr_tol = 1e-18
-        A = np.array([
-            [1,0,0,0],
-            [0,1,0,0],
-            [0,0,1,0],
-            [0,0,0,1]])
-        rank, D = qr_rank(A,mr_tol)
+        A = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+        rank, D = qr_rank(A, mr_tol)
         self.assertTrue(np.all(D > mr_tol), "Incorrect diagonal matrix output")
         self.assertTrue(rank == 4, "Incorrect rank output")
+
 
 # Full rank but QR has negative entries for diag(R)
 class TestMatrixRankQR2(unittest.TestCase):
     def runTest(self):
         mr_tol = 1e-18
-        A = np.array([
-            [1,2,3,4],
-            [0,6,7,8],
-            [-1,-2,-2,-1],
-            [4,2,2,1]])
-        rank, D = qr_rank(A,mr_tol)
+        A = np.array([[1, 2, 3, 4], [0, 6, 7, 8], [-1, -2, -2, -1], [4, 2, 2, 1]])
+        rank, D = qr_rank(A, mr_tol)
         self.assertTrue(np.all(D > mr_tol), "Incorrect diagonal matrix output")
         self.assertTrue(rank == 4, "Incorrect rank output")
 
@@ -198,102 +241,112 @@ class TestMatrixRankQR2(unittest.TestCase):
 class TestMatrixRankQR3(unittest.TestCase):
     def runTest(self):
         mr_tol = 1e-18
-        A = np.array([
-            [1,2,3,4],
-            [2,6,4,8],
-            [0,0,0,0],
-            [0,0,0,0]])
-        rank, D = qr_rank(A,mr_tol)
-        self.assertTrue(np.all(D[0:2] > mr_tol), "Incorrect diagonal matrix output (rows 1,2)")
-        self.assertTrue(np.all(D[2:4] <= mr_tol), "Incorrect diagonal matrix output (rows 3,4)")
+        A = np.array([[1, 2, 3, 4], [2, 6, 4, 8], [0, 0, 0, 0], [0, 0, 0, 0]])
+        rank, D = qr_rank(A, mr_tol)
+        self.assertTrue(
+            np.all(D[0:2] > mr_tol), "Incorrect diagonal matrix output (rows 1,2)"
+        )
+        self.assertTrue(
+            np.all(D[2:4] <= mr_tol), "Incorrect diagonal matrix output (rows 3,4)"
+        )
         self.assertTrue(rank == 2, "Incorrect rank output")
 
 
 class TestDykstraBoxInt(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([0,0])
+        x0 = np.array([0, 0])
         lower = np.array([-0.01, -0.1])
         upper = np.array([0.01, 0.5])
-        boxproj = lambda x: pbox(x,lower,upper)
+        boxproj = lambda x: pbox(x, lower, upper)
         P = [boxproj]
-        xproj = dykstra(P,x0)
+        xproj = dykstra(P, x0)
         self.assertTrue(np.all(xproj == x0), "Incorrect point returned by Dykstra")
 
 
 class TestDykstraBoxExt(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([-2,5])
+        x0 = np.array([-2, 5])
         lower = np.array([-1, -1])
         upper = np.array([0.5, 0.9])
-        boxproj = lambda x: pbox(x,lower,upper)
+        boxproj = lambda x: pbox(x, lower, upper)
         P = [boxproj]
-        xproj = dykstra(P,x0)
-        xtrue = np.array([-1,0.9])
-        self.assertTrue(np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra")
+        xproj = dykstra(P, x0)
+        xtrue = np.array([-1, 0.9])
+        self.assertTrue(
+            np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra"
+        )
+
 
 class TestDykstraBallInt(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([0,0])
-        ballproj = lambda x: pball(x,x0+1,2)
+        x0 = np.array([0, 0])
+        ballproj = lambda x: pball(x, x0 + 1, 2)
         P = [ballproj]
-        xproj = dykstra(P,x0)
+        xproj = dykstra(P, x0)
         self.assertTrue(np.all(xproj == x0), "Incorrect point returned by Dykstra")
 
 
 class TestDykstraBallExt(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([-3,5])
-        ballproj = lambda x: pball(x,np.array([-0.5,1]),1)
+        x0 = np.array([-3, 5])
+        ballproj = lambda x: pball(x, np.array([-0.5, 1]), 1)
         P = [ballproj]
-        xproj = dykstra(P,x0)
+        xproj = dykstra(P, x0)
         xtrue = np.array([-1.02999894, 1.8479983])
-        self.assertTrue(np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra")
+        self.assertTrue(
+            np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra"
+        )
 
 
 class TestDykstraBoxBallInt(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([0.72,1.1])
+        x0 = np.array([0.72, 1.1])
         lower = np.array([0.7, -2.0])
         upper = np.array([1.0, 2])
-        boxproj = lambda x: pbox(x,lower,upper)
-        ballproj = lambda x: pball(x,np.array([0.5,1]),0.25)
-        P = [boxproj,ballproj]
-        xproj = dykstra(P,x0)
+        boxproj = lambda x: pbox(x, lower, upper)
+        ballproj = lambda x: pball(x, np.array([0.5, 1]), 0.25)
+        P = [boxproj, ballproj]
+        xproj = dykstra(P, x0)
         self.assertTrue(np.all(xproj == x0), "Incorrect point returned by Dykstra")
+
 
 class TestDykstraBoxBallExt1(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([0,4])
+        x0 = np.array([0, 4])
         lower = np.array([0.7, -2.0])
         upper = np.array([1.0, 2])
-        boxproj = lambda x: pbox(x,lower,upper)
-        ballproj = lambda x: pball(x,np.array([0.5,1]),0.25)
-        P = [boxproj,ballproj]
-        xproj = dykstra(P,x0)
+        boxproj = lambda x: pbox(x, lower, upper)
+        ballproj = lambda x: pball(x, np.array([0.5, 1]), 0.25)
+        P = [boxproj, ballproj]
+        xproj = dykstra(P, x0)
         xtrue = np.array([0.6940582, 1.1576116])
-        self.assertTrue(np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra")
+        self.assertTrue(
+            np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra"
+        )
 
 
 class TestDykstraBoxBallExt2(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([0.8,-3])
+        x0 = np.array([0.8, -3])
         lower = np.array([0.7, -2.0])
         upper = np.array([1.0, 2])
-        boxproj = lambda x: pbox(x,lower,upper)
-        ballproj = lambda x: pball(x,np.array([0.5,1]),0.25)
-        P = [boxproj,ballproj]
-        xproj = dykstra(P,x0)
+        boxproj = lambda x: pbox(x, lower, upper)
+        ballproj = lambda x: pball(x, np.array([0.5, 1]), 0.25)
+        P = [boxproj, ballproj]
+        xproj = dykstra(P, x0)
         xtrue = np.array([0.68976232, 0.8372417])
-        self.assertTrue(np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra")
+        self.assertTrue(
+            np.allclose(xproj, xtrue), "Incorrect point returned by Dykstra"
+        )
 
 
 class TestDykstraBoxBallBdry(unittest.TestCase):
     def runTest(self):
-        x0 = np.array([0.7,0.85])
+        x0 = np.array([0.7, 0.85])
         lower = np.array([0.7, -2.0])
         upper = np.array([1.0, 2])
-        boxproj = lambda x: pbox(x,lower,upper)
-        ballproj = lambda x: pball(x,np.array([0.5,1]),0.25)
-        P = [boxproj,ballproj]
-        xproj = dykstra(P,x0)
+        boxproj = lambda x: pbox(x, lower, upper)
+        ballproj = lambda x: pball(x, np.array([0.5, 1]), 0.25)
+        P = [boxproj, ballproj]
+        xproj = dykstra(P, x0)
         self.assertTrue(np.allclose(xproj, x0), "Incorrect point returned by Dykstra")

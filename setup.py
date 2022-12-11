@@ -26,45 +26,45 @@ from setuptools import setup
 
 # Get package version without "import dfols" (which requires dependencies to already be installed)
 import os
+
 version = {}
-with open(os.path.join('dfols', 'version.py')) as fp:
+with open(os.path.join("dfols", "version.py")) as fp:
     exec(fp.read(), version)
-__version__ = version['__version__']
+__version__ = version["__version__"]
 
 setup(
-    name='DFO-LS',
+    name="DFO-LS",
     version=__version__,
-    description='A flexible derivative-free solver for (bound constrained) nonlinear least-squares minimization',
-    long_description=open('README.rst').read(),
-    author='Lindon Roberts',
-    author_email='lindon.roberts@anu.edu.au',
-    url='https://github.com/numericalalgorithmsgroup/dfols/',
-    download_url='https://github.com/numericalalgorithmsgroup/dfols/archive/v1.3.0.tar.gz',
-    packages=['dfols'],
-    license='GNU GPL',
-    keywords = 'mathematics derivative free optimization nonlinear least squares',
+    description="A flexible derivative-free solver for (bound constrained) nonlinear least-squares minimization",
+    long_description=open("README.rst").read(),
+    author="Lindon Roberts",
+    author_email="lindon.roberts@anu.edu.au",
+    url="https://github.com/numericalalgorithmsgroup/dfols/",
+    download_url="https://github.com/numericalalgorithmsgroup/dfols/archive/v1.3.0.tar.gz",
+    packages=["dfols"],
+    license="GNU GPL",
+    keywords="mathematics derivative free optimization nonlinear least squares",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Framework :: IPython',
-        'Framework :: Jupyter',
-        'Intended Audience :: Financial and Insurance Industry',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 3',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Scientific/Engineering :: Mathematics',
-        ],
-    install_requires = ['numpy >= 1.11', 'scipy >= 0.18', 'pandas >= 0.17'],
-    extras_require = {'trustregion': 'trustregion >= 1.1'},
-    test_suite='nose.collector',
-    tests_require=['nose'],
-    zip_safe = True,
-    )
-
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Framework :: IPython",
+        "Framework :: Jupyter",
+        "Intended Audience :: Financial and Insurance Industry",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Mathematics",
+    ],
+    install_requires=["numpy >= 1.11", "scipy >= 0.18", "pandas >= 0.17"],
+    extras_require={"trustregion": "trustregion >= 1.1"},
+    test_suite="nose.collector",
+    tests_require=["nose"],
+    zip_safe=True,
+)

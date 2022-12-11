@@ -39,9 +39,10 @@ alternative licensing.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .version import __version__
-__all__ = ['__version__']
+
+__all__ = ["__version__"]
 
 # Main solver & exit flags
 from .solver import *
-__all__ += ['solve']
 
+__all__ += ["solve"]

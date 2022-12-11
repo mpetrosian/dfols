@@ -32,7 +32,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 
 
-__all__ = ['Hessian']
+__all__ = ["Hessian"]
 
 
 class Hessian(object):
@@ -42,9 +42,14 @@ class Hessian(object):
             self.hq = np.zeros((n * (n + 1) // 2,), dtype=float)
         else:
             assert isinstance(vals, np.ndarray), "Can only set Hessian from NumPy array"
-            assert len(vals.shape) in [1, 2], "Can only set Hessian from vector or matrix"
+            assert len(vals.shape) in [
+                1,
+                2,
+            ], "Can only set Hessian from vector or matrix"
             if len(vals.shape) == 1:
-                assert vals.shape[0] == self.n * (self.n + 1) // 2, "Incompatible n and input vector"
+                assert (
+                    vals.shape[0] == self.n * (self.n + 1) // 2
+                ), "Incompatible n and input vector"
                 self.hq = vals
             else:
                 # Input was matrix
@@ -65,9 +70,9 @@ class Hessian(object):
 
     def check_valid_index(self, i, j):
         assert i >= 0, "Index i must be >= 0"
-        assert i <= self.n-1, "Index i must be <= n-1"
+        assert i <= self.n - 1, "Index i must be <= n-1"
         assert j >= 0, "Index j must be >= 0"
-        assert j <= self.n-1, "Index j must be <= n-1"
+        assert j <= self.n - 1, "Index j must be <= n-1"
 
     def as_full(self):
         A = np.zeros((self.n, self.n))
@@ -103,7 +108,9 @@ class Hessian(object):
         # Matrix-vector product
         assert isinstance(s, np.ndarray), "Can only multiply Hessian by a NumPy array"
         assert len(s.shape) == 1, "Can only multiply Hessian by a vector"
-        assert s.shape == (self.n,), "Vector has incorrect length (expect %g, got %g)" % (self.n, s.shape[0])
+        assert s.shape == (
+            self.n,
+        ), "Vector has incorrect length (expect %g, got %g)" % (self.n, s.shape[0])
         hs = np.zeros((self.n,))
         ih = -1
         for j in range(self.n):  # j = 0, ..., n-1
@@ -120,10 +127,10 @@ class Hessian(object):
 
 def to_upper_triangular_vector(A):
     n = A.shape[0]
-    hq = np.zeros((n*(n+1)//2,))
+    hq = np.zeros((n * (n + 1) // 2,))
     ih = -1
     for j in range(n):  # j = 0, ..., n-1
         for i in range(j + 1):  # i = 0, ..., j
             ih += 1
-            hq[ih] = A[i,j]
+            hq[ih] = A[i, j]
     return hq

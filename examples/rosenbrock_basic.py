@@ -7,6 +7,7 @@ import dfols
 def rosenbrock(x):
     return np.array([10.0 * (x[1] - x[0] ** 2), 1.0 - x[0]])
 
+
 # Define the starting point
 x0 = np.array([-1.2, 1.0])
 
@@ -19,4 +20,3 @@ soln = dfols.solve(rosenbrock, x0)
 
 # Display output
 print(soln)
-

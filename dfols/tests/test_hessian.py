@@ -36,37 +36,46 @@ def array_compare(x, y, thresh=1e-14):
 class TestBasicInit(unittest.TestCase):
     def runTest(self):
         n = 4
-        nvals = n*(n+1)//2
+        nvals = n * (n + 1) // 2
         hess = Hessian(n)
-        self.assertEqual(hess.shape(), (nvals,), 'Wrong shape for initialisation')
-        self.assertEqual(hess.dim(), n, 'Wrong dimension')
-        self.assertEqual(len(hess), nvals, 'Wrong length')
-        self.assertTrue(np.all(hess.upper_triangular() == np.zeros((nvals,))), 'Wrong initialised values')
+        self.assertEqual(hess.shape(), (nvals,), "Wrong shape for initialisation")
+        self.assertEqual(hess.dim(), n, "Wrong dimension")
+        self.assertEqual(len(hess), nvals, "Wrong length")
+        self.assertTrue(
+            np.all(hess.upper_triangular() == np.zeros((nvals,))),
+            "Wrong initialised values",
+        )
 
 
 class TestInitFromVector(unittest.TestCase):
     def runTest(self):
         n = 5
-        nvals = n*(n+1)//2
+        nvals = n * (n + 1) // 2
         x = np.arange(nvals, dtype=float)
         hess = Hessian(n, vals=x)
-        self.assertEqual(hess.shape(), (nvals,), 'Wrong shape for initialisation')
-        self.assertEqual(hess.dim(), n, 'Wrong dimension')
-        self.assertEqual(len(hess), nvals, 'Wrong length')
-        self.assertTrue(np.all(hess.upper_triangular() == x), 'Wrong initialised values')
+        self.assertEqual(hess.shape(), (nvals,), "Wrong shape for initialisation")
+        self.assertEqual(hess.dim(), n, "Wrong dimension")
+        self.assertEqual(len(hess), nvals, "Wrong length")
+        self.assertTrue(
+            np.all(hess.upper_triangular() == x), "Wrong initialised values"
+        )
 
 
 class TestInitFromMatrix(unittest.TestCase):
     def runTest(self):
         n = 3
-        nvals = n*(n+1)//2
-        A = np.arange(n**2, dtype=float).reshape((n,n))
-        hess = Hessian(n, vals=A+A.T)  # force symmetric
-        self.assertEqual(hess.shape(), (nvals,), 'Wrong shape for initialisation')
-        self.assertEqual(hess.dim(), n, 'Wrong dimension')
-        self.assertEqual(len(hess), nvals, 'Wrong length')
-        self.assertTrue(np.all(hess.upper_triangular() == np.array([0.0, 4.0, 8.0, 8.0, 12.0, 16.0])),
-                        'Wrong initialised values')
+        nvals = n * (n + 1) // 2
+        A = np.arange(n ** 2, dtype=float).reshape((n, n))
+        hess = Hessian(n, vals=A + A.T)  # force symmetric
+        self.assertEqual(hess.shape(), (nvals,), "Wrong shape for initialisation")
+        self.assertEqual(hess.dim(), n, "Wrong dimension")
+        self.assertEqual(len(hess), nvals, "Wrong length")
+        self.assertTrue(
+            np.all(
+                hess.upper_triangular() == np.array([0.0, 4.0, 8.0, 8.0, 12.0, 16.0])
+            ),
+            "Wrong initialised values",
+        )
 
 
 class TestToFull(unittest.TestCase):
@@ -75,7 +84,7 @@ class TestToFull(unittest.TestCase):
         A = np.arange(n ** 2, dtype=float).reshape((n, n))
         H = A + A.T  # force symmetric
         hess = Hessian(n, vals=H)
-        self.assertTrue(np.all(hess.as_full() == H), 'Wrong values')
+        self.assertTrue(np.all(hess.as_full() == H), "Wrong values")
 
 
 class TestGetElementGood(unittest.TestCase):
@@ -86,8 +95,12 @@ class TestGetElementGood(unittest.TestCase):
         hess = Hessian(n, vals=H)
         for i in range(n):
             for j in range(n):
-                self.assertEqual(hess.get_element(i, j), H[i,j], 'Wrong value for (i,j)=(%g,%g): got %g, expecting %g'
-                                 % (i, j, hess.get_element(i, j), H[i,j]))
+                self.assertEqual(
+                    hess.get_element(i, j),
+                    H[i, j],
+                    "Wrong value for (i,j)=(%g,%g): got %g, expecting %g"
+                    % (i, j, hess.get_element(i, j), H[i, j]),
+                )
 
 
 class TestGetElementBad(unittest.TestCase):
@@ -99,16 +112,16 @@ class TestGetElementBad(unittest.TestCase):
         # When testing for assertion errors, need lambda to stop assertion from actually happening
         self.assertRaises(AssertionError, lambda: hess.get_element(-1, 0))
         self.assertRaises(AssertionError, lambda: hess.get_element(-1, 0))
-        self.assertRaises(AssertionError, lambda: hess.get_element(-3, n-1))
+        self.assertRaises(AssertionError, lambda: hess.get_element(-3, n - 1))
         self.assertRaises(AssertionError, lambda: hess.get_element(n, 0))
-        self.assertRaises(AssertionError, lambda: hess.get_element(n+3, 0))
-        self.assertRaises(AssertionError, lambda: hess.get_element(n+7, n-1))
+        self.assertRaises(AssertionError, lambda: hess.get_element(n + 3, 0))
+        self.assertRaises(AssertionError, lambda: hess.get_element(n + 7, n - 1))
         self.assertRaises(AssertionError, lambda: hess.get_element(0, -1))
         self.assertRaises(AssertionError, lambda: hess.get_element(0, -1))
-        self.assertRaises(AssertionError, lambda: hess.get_element(n-1, -3))
+        self.assertRaises(AssertionError, lambda: hess.get_element(n - 1, -3))
         self.assertRaises(AssertionError, lambda: hess.get_element(0, n))
-        self.assertRaises(AssertionError, lambda: hess.get_element(0, n+3))
-        self.assertRaises(AssertionError, lambda: hess.get_element(n-1, n+7))
+        self.assertRaises(AssertionError, lambda: hess.get_element(0, n + 3))
+        self.assertRaises(AssertionError, lambda: hess.get_element(n - 1, n + 7))
 
 
 class TestSetElementGood(unittest.TestCase):
@@ -120,11 +133,15 @@ class TestSetElementGood(unittest.TestCase):
         H2 = np.sin(H)
         for i in range(n):
             for j in range(n):
-                hess.set_element(i, j, H2[i,j])
+                hess.set_element(i, j, H2[i, j])
         for i in range(n):
             for j in range(n):
-                self.assertEqual(hess.get_element(i, j), H2[i, j], 'Wrong value for (i,j)=(%g,%g): got %g, expecting %g'
-                                 % (i, j, hess.get_element(i, j), H2[i, j]))
+                self.assertEqual(
+                    hess.get_element(i, j),
+                    H2[i, j],
+                    "Wrong value for (i,j)=(%g,%g): got %g, expecting %g"
+                    % (i, j, hess.get_element(i, j), H2[i, j]),
+                )
 
 
 class TestSetElementBad(unittest.TestCase):
@@ -156,7 +173,7 @@ class TestMultGood(unittest.TestCase):
         hess = Hessian(n, vals=H)
         vec = np.exp(np.arange(n, dtype=float))
         hs = np.dot(H, vec)
-        self.assertTrue(array_compare(hess*vec, hs, thresh=1e-12), 'Wrong values')
+        self.assertTrue(array_compare(hess * vec, hs, thresh=1e-12), "Wrong values")
 
 
 class TestMultBad(unittest.TestCase):
@@ -169,5 +186,5 @@ class TestMultBad(unittest.TestCase):
         self.assertRaises(AssertionError, lambda: hess * 1.0)
         self.assertRaises(AssertionError, lambda: hess * None)
         self.assertRaises(AssertionError, lambda: hess * [float(i) for i in range(n)])
-        self.assertRaises(AssertionError, lambda: hess * np.arange(n-1, dtype=float))
-        self.assertRaises(AssertionError, lambda: hess * np.arange(n+1, dtype=float))
+        self.assertRaises(AssertionError, lambda: hess * np.arange(n - 1, dtype=float))
+        self.assertRaises(AssertionError, lambda: hess * np.arange(n + 1, dtype=float))

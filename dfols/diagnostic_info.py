@@ -30,17 +30,30 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 import pandas as pd
+from typing import NamedTuple
 from .util import remove_scaling
 
 
-__all__ = ['DiagnosticInfo', 'ITER_VERY_SUCCESSFUL', 'ITER_SUCCESSFUL', 'ITER_ACCEPTABLE_GEOM',
-           'ITER_ACCEPTABLE_NO_GEOM', 'ITER_UNSUCCESSFUL_GEOM', 'ITER_UNSUCCESSFUL_NO_GEOM', 'ITER_SAFETY']
+__all__ = [
+    "DiagnosticInfo",
+    "ITER_VERY_SUCCESSFUL",
+    "ITER_SUCCESSFUL",
+    "ITER_ACCEPTABLE_GEOM",
+    "ITER_ACCEPTABLE_NO_GEOM",
+    "ITER_UNSUCCESSFUL_GEOM",
+    "ITER_UNSUCCESSFUL_NO_GEOM",
+    "ITER_SAFETY",
+]
 
 
-ITER_VERY_SUCCESSFUL = "Very successful"   # ratio >= 0.7, no geometry update
+ITER_VERY_SUCCESSFUL = "Very successful"  # ratio >= 0.7, no geometry update
 ITER_SUCCESSFUL = "Successful"  # 0.1 <= ratio < 0.7, no geometry update
-ITER_ACCEPTABLE_GEOM = "Acceptable (geom fixed)"  # 0 <= ratio < 0.1, with geometry update
-ITER_ACCEPTABLE_NO_GEOM = "Acceptable (geom not fixed)"  # 0 <= ratio < 0.1, without geometry update
+ITER_ACCEPTABLE_GEOM = (
+    "Acceptable (geom fixed)"  # 0 <= ratio < 0.1, with geometry update
+)
+ITER_ACCEPTABLE_NO_GEOM = (
+    "Acceptable (geom not fixed)"  # 0 <= ratio < 0.1, without geometry update
+)
 ITER_UNSUCCESSFUL_GEOM = "Unsuccessful (geom fixed)"  # ratio < 0, with geometry update
 ITER_UNSUCCESSFUL_NO_GEOM = "Unsuccessful (geom not fixed)"  # ratio < 0, without geometry update (possibly rho reduced)
 ITER_SAFETY = "Safety"  # safety step taken (||s|| too small compared to rho)
@@ -91,7 +104,9 @@ class DiagnosticInfo(object):
         df = self.to_dataframe()
         df.to_csv(filename)
 
-    def save_info_from_control(self, control, nruns, iter_this_run, save_poisedness=True):
+    def save_info_from_control(
+        self, control, nruns, iter_this_run, save_poisedness=True
+    ):
         self.data["iters_total"].append(len(self.data["iters_total"]))
         self.data["nruns"].append(nruns)
         self.data["iter_this_run"].append(iter_this_run)
@@ -107,10 +122,14 @@ class DiagnosticInfo(object):
         self.data["rk"].append(rvec)
         self.data["fk"].append(f)
         self.data["nsamples"].append(np.sum(control.model.nsamples))
-        self.data["max_distance_xk"].append(np.sqrt(np.max(control.model.distances_to_xopt())))
+        self.data["max_distance_xk"].append(
+            np.sqrt(np.max(control.model.distances_to_xopt()))
+        )
         # Poisedness is expensive to compute (unlike everything else here), so allow the option to not calculate
         if save_poisedness:
-            self.data["poisedness"].append(control.model.poisedness_constant(control.delta))
+            self.data["poisedness"].append(
+                control.model.poisedness_constant(control.delta)
+            )
         else:
             self.data["poisedness"].append(0.0)
         # The other things we can't get just yet, so save a default value there for now
@@ -125,8 +144,15 @@ class DiagnosticInfo(object):
         self.data["slow_iter"].append(None)
         return
 
-    def update_interpolation_information(self, interp_error, interp_cond_num, interp_total_resid, norm_change_J,
-                                         norm_gk, norm_sk):
+    def update_interpolation_information(
+        self,
+        interp_error,
+        interp_cond_num,
+        interp_total_resid,
+        norm_change_J,
+        norm_gk,
+        norm_sk,
+    ):
         self.data["interpolation_error"][-1] = interp_error
         self.data["interpolation_condition_number"][-1] = interp_cond_num
         self.data["interpolation_total_residual"][-1] = interp_total_resid
@@ -147,3 +173,37 @@ class DiagnosticInfo(object):
         self.data["slow_iter"][-1] = slow_iter
         return
 
+
+class TrustRegion(NamedTuple):
+    center: np.ndarray
+    radius: float
+
+
+class State(NamedTuple):
+    # Whether this is a safety iteration
+    safety: bool
+
+    # the trustregion at the beginning of the iteration
+    trustregion: TrustRegion
+
+    # # Information about the model used to make the acceptance decision in the iteration
+    # model_indices: np.ndarray
+
+    # accepted parameters and function values at the end of the iteration
+    # index: int
+    x: np.ndarray
+    fval: np.ndarray  # this is an estimate for noisy functions
+    index: np.ndarray
+
+    # success Information
+    rho: float
+
+    # information on existing and new existing points
+    model_points: np.ndarray
+    model_indices_: np.ndarray
+    old_indices_used_: np.ndarray
+    new_indices_: np.ndarray
+
+    model_indices: np.ndarray
+    new_indices: np.ndarray
+    old_indices_used: np.ndarray

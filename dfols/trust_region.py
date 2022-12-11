@@ -72,8 +72,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from math import sqrt
 import numpy as np
+
 try:
     import trustregion
+
     USE_FORTRAN = True
 except ImportError:
     # Fall back to Python implementation
@@ -81,16 +83,26 @@ except ImportError:
 
 from .util import dykstra, pball, pbox, sumsq, model_value
 
-__all__ = ['ctrsbox', 'ctrsbox_geometry', 'trsbox', 'trsbox_geometry']
+__all__ = ["ctrsbox", "ctrsbox_geometry", "trsbox", "trsbox_geometry"]
 
 ZERO_THRESH = 1e-14
 
-def ctrsbox(xopt, g, H, projections, delta, d_max_iters=100, d_tol=1e-10, use_fortran=USE_FORTRAN):
+
+def ctrsbox(
+    xopt,
+    g,
+    H,
+    projections,
+    delta,
+    d_max_iters=100,
+    d_tol=1e-10,
+    use_fortran=USE_FORTRAN,
+):
     n = xopt.size
     assert xopt.shape == (n,), "xopt has wrong shape (should be vector)"
     assert g.shape == (n,), "g and xopt have incompatible sizes"
     assert len(H.shape) == 2, "H must be a matrix"
-    assert H.shape == (n,n), "H and xopt have incompatible sizes"
+    assert H.shape == (n, n), "H and xopt have incompatible sizes"
     assert np.allclose(H, H.T), "H must be symmetric"
     assert delta > 0.0, "delta must be strictly positive"
 
@@ -99,7 +111,7 @@ def ctrsbox(xopt, g, H, projections, delta, d_max_iters=100, d_tol=1e-10, use_fo
     gy = g.copy()
     crvmin = -1.0
     y = d.copy()
-    eta = 1.2 # L backtrack scaling factor
+    eta = 1.2  # L backtrack scaling factor
     t = 1
 
     # Initial guess of L is norm(Hessian)
@@ -111,17 +123,18 @@ def ctrsbox(xopt, g, H, projections, delta, d_max_iters=100, d_tol=1e-10, use_fo
     # combine trust region constraints with user-entered constraints
     P = list(projections)  # make a copy of the projections list
     P.append(trproj)
+
     def proj(d0):
-        p = dykstra(P, xopt+d0, max_iter=d_max_iters, tol=d_tol)
+        p = dykstra(P, xopt + d0, max_iter=d_max_iters, tol=d_tol)
         # we want the step only, so we subtract xopt
         # from the new point: proj(xk+d) - xk
         return p - xopt
 
     MAX_LOOP_ITERS = 100 * n ** 2
 
-    # projected GD loop 
+    # projected GD loop
     for ii in range(MAX_LOOP_ITERS):
-        w = y - (1/L)*gy
+        w = y - (1 / L) * gy
         prev_d = d.copy()
         d = proj(w)
 
@@ -133,7 +146,7 @@ def ctrsbox(xopt, g, H, projections, delta, d_max_iters=100, d_tol=1e-10, use_fo
         gnew += H.dot(s)
 
         # update CRVMIN
-        crv = s.dot(H).dot(s)/sumsq(s) if sumsq(s) >= ZERO_THRESH else crvmin
+        crv = s.dot(H).dot(s) / sumsq(s) if sumsq(s) >= ZERO_THRESH else crvmin
         crvmin = min(crvmin, crv) if crvmin != -1.0 else crv
 
         # exit condition
@@ -142,9 +155,9 @@ def ctrsbox(xopt, g, H, projections, delta, d_max_iters=100, d_tol=1e-10, use_fo
 
         # momentum update
         prev_t = t
-        t = (1 + np.sqrt(1 + 4 * t ** 2))/2
+        t = (1 + np.sqrt(1 + 4 * t ** 2)) / 2
         prev_y = y.copy()
-        y = d + s*(prev_t - 1)/t
+        y = d + s * (prev_t - 1) / t
 
         # update gradient w.r.t y
         gy += H.dot(y - prev_y)
@@ -154,16 +167,20 @@ def ctrsbox(xopt, g, H, projections, delta, d_max_iters=100, d_tol=1e-10, use_fo
 
 def trsbox(xopt, g, H, sl, su, delta, use_fortran=USE_FORTRAN):
     if use_fortran:
-        return trustregion.solve(g, H, delta,
-                                 sl=np.minimum(sl - xopt, -ZERO_THRESH),
-                                 su=np.maximum(su - xopt, ZERO_THRESH),
-                                 verbose_output=True)
+        return trustregion.solve(
+            g,
+            H,
+            delta,
+            sl=np.minimum(sl - xopt, -ZERO_THRESH),
+            su=np.maximum(su - xopt, ZERO_THRESH),
+            verbose_output=True,
+        )
 
     n = xopt.size
     assert xopt.shape == (n,), "xopt has wrong shape (should be vector)"
     assert g.shape == (n,), "g and xopt have incompatible sizes"
     assert len(H.shape) == 2, "H must be a matrix"
-    assert H.shape == (n,n), "H and xopt have incompatible sizes"
+    assert H.shape == (n, n), "H and xopt have incompatible sizes"
     assert np.allclose(H, H.T), "H must be symmetric"
     assert sl.shape == (n,), "sl and xopt have incompatible sizes"
     assert su.shape == (n,), "su and xopt have incompatible sizes"
@@ -195,7 +212,9 @@ def trsbox(xopt, g, H, sl, su, delta, use_fortran=USE_FORTRAN):
     crvmin = -1.0
     beta = 0.0  # label 20
 
-    need_alt_trust_step = False  # will either quit main CG loop to finish, or do alternative step
+    need_alt_trust_step = (
+        False  # will either quit main CG loop to finish, or do alternative step
+    )
     MAX_LOOP_ITERS = 100 * n ** 2  # avoid infinite loops
     # while True:  # main CG loop [label 30]
     for ii in range(MAX_LOOP_ITERS):
@@ -218,7 +237,9 @@ def trsbox(xopt, g, H, sl, su, delta, use_fortran=USE_FORTRAN):
             gredsq0 = gredsq
 
         # Exit conditions
-        if gredsq <= min(1.0e-6 * gredsq0, 1.0e-18) or gredsq * delsq <= min(1.0e-6 * qred ** 2, 1.0e-18):  # DFBOLS
+        if gredsq <= min(1.0e-6 * gredsq0, 1.0e-18) or gredsq * delsq <= min(
+            1.0e-6 * qred ** 2, 1.0e-18
+        ):  # DFBOLS
             need_alt_trust_step = False
             break  # break and quit
 
@@ -238,8 +259,8 @@ def trsbox(xopt, g, H, sl, su, delta, use_fortran=USE_FORTRAN):
             break  # break and calculate alt step instead
 
         temp = sqrt(stepsq * resid + ds ** 2)
-        blen = (resid / (temp + ds) if ds >= 0.0 else (temp - ds) / stepsq)
-        stplen = (blen if shs <= 0.0 else min(blen, gredsq / shs))
+        blen = resid / (temp + ds) if ds >= 0.0 else (temp - ds) / stepsq
+        stplen = blen if shs <= 0.0 else min(blen, gredsq / shs)
 
         # Exit condition
         if stplen <= 1.0e-30:  # DFBOLS
@@ -251,7 +272,9 @@ def trsbox(xopt, g, H, sl, su, delta, use_fortran=USE_FORTRAN):
         iact = None
         for i in range(n):
             if s[i] != 0.0:
-                temp = (su[i] - xopt[i] - d[i] if s[i] > 0.0 else sl[i] - xopt[i] - d[i]) / s[i]
+                temp = (
+                    su[i] - xopt[i] - d[i] if s[i] > 0.0 else sl[i] - xopt[i] - d[i]
+                ) / s[i]
                 if temp < stplen:
                     stplen = temp
                     iact = i
@@ -273,7 +296,7 @@ def trsbox(xopt, g, H, sl, su, delta, use_fortran=USE_FORTRAN):
         # Restart the conjugate gradient method if it has hit a new bound.
         if iact is not None:
             nact += 1
-            xbdi[iact] = (1 if s[iact] >= 0.0 else -1)
+            xbdi[iact] = 1 if s[iact] >= 0.0 else -1
             delsq = delsq - d[iact] ** 2
             if delsq <= 0.0:
                 need_alt_trust_step = True
@@ -330,7 +353,9 @@ def alt_trust_step(n, xopt, H, sl, su, d, xbdi, nact, gnew, qred):
 
         # Let the search direction S be a linear combination of the reduced D
         # and the reduced G that is orthogonal to the reduced D.
-        restart_alt_loop = False  # once the below loop finishes, quit unless need to go again
+        restart_alt_loop = (
+            False  # once the below loop finishes, quit unless need to go again
+        )
         # while True:  # label 120
         for jj in range(MAX_LOOP_ITERS):
             temp = gredsq * dredsq - dredg ** 2
@@ -448,7 +473,7 @@ def alt_trust_step(n, xopt, H, sl, su, d, xbdi, nact, gnew, qred):
                 restart_alt_loop = True
                 break  # quit inner label 120 loop and restart alt iteration loop (label 100)
 
-            if (sdec <= 0.01 * qred):
+            if sdec <= 0.01 * qred:
                 restart_alt_loop = False
                 break  # quit inner label 120 loop and return results
             continue  # back to inner label 120 loop
@@ -489,9 +514,15 @@ def ball_step(x0, g, Delta):
         #  print("Inside of the sqrt:", gdotx0**2 + gsqnorm*(Delta**2 - x0sqnorm))
         # Got Inside of the sqrt: -3.608971127647144e-42
         # Added max(0,...) here
-        return (sqrt(np.maximum(0,gdotx0**2 + gsqnorm*(Delta**2 - x0sqnorm))) - gdotx0) / gsqnorm
+        return (
+            sqrt(np.maximum(0, gdotx0 ** 2 + gsqnorm * (Delta ** 2 - x0sqnorm)))
+            - gdotx0
+        ) / gsqnorm
 
-def ctrsbox_linear(xbase, g, projections, Delta, d_max_iters=100, d_tol=1e-10, use_fortran=USE_FORTRAN):
+
+def ctrsbox_linear(
+    xbase, g, projections, Delta, d_max_iters=100, d_tol=1e-10, use_fortran=USE_FORTRAN
+):
     # Solve the convex program:
     #   min_d   g' * d
     #   s.t.    xbase + d is feasible w.r.t. constraint set C
@@ -514,6 +545,7 @@ def ctrsbox_linear(xbase, g, projections, Delta, d_max_iters=100, d_tol=1e-10, u
     # combine trust region constraints with user-entered constraints
     P = list(projections)  # make a copy of the projections list
     P.append(trproj)
+
     def proj(d0):
         p = dykstra(P, xbase + d0, max_iter=d_max_iters, tol=d_tol)
         # we want the step only, so we subtract
@@ -522,7 +554,7 @@ def ctrsbox_linear(xbase, g, projections, Delta, d_max_iters=100, d_tol=1e-10, u
 
     MAX_LOOP_ITERS = 100 * n ** 2
 
-    # projected GD loop 
+    # projected GD loop
     for ii in range(MAX_LOOP_ITERS):
         w = y + dirn
         prev_d = d.copy()
@@ -537,11 +569,12 @@ def ctrsbox_linear(xbase, g, projections, Delta, d_max_iters=100, d_tol=1e-10, u
 
         # 'momentum' update
         prev_t = t
-        t = (1 + np.sqrt(1 + 4 * t ** 2))/2
+        t = (1 + np.sqrt(1 + 4 * t ** 2)) / 2
         prev_y = y.copy()
-        y = d + s*(prev_t - 1)/t
+        y = d + s * (prev_t - 1) / t
 
     return d
+
 
 def trsbox_linear(g, a_in, b_in, Delta, use_fortran=USE_FORTRAN):
     # Solve the convex program:
@@ -552,10 +585,7 @@ def trsbox_linear(g, a_in, b_in, Delta, use_fortran=USE_FORTRAN):
     a = np.minimum(a_in, -ZERO_THRESH)
     b = np.maximum(b_in, ZERO_THRESH)
     if use_fortran:
-        return trustregion.solve(g, None, Delta,
-                                 sl=a,
-                                 su=b,
-                                 verbose_output=False)
+        return trustregion.solve(g, None, Delta, sl=a, su=b, verbose_output=False)
 
     n = g.size
     x = np.zeros((n,))
@@ -595,13 +625,27 @@ def trsbox_linear(g, a_in, b_in, Delta, use_fortran=USE_FORTRAN):
         else:
             # Go as far as possible until hit box, then remove that direction from 'dirn'
             cons_dirns.append(idx_hit)  # new constrained direction
-            alpha_con = ((b[idx_hit] if hit_upper else a[idx_hit]) - x[idx_hit]) / dirn[idx_hit]
+            alpha_con = ((b[idx_hit] if hit_upper else a[idx_hit]) - x[idx_hit]) / dirn[
+                idx_hit
+            ]
             x = x + alpha_con * dirn
-            x[idx_hit] = b[idx_hit] if hit_upper else a[idx_hit]  # force boundary exactly
+            x[idx_hit] = (
+                b[idx_hit] if hit_upper else a[idx_hit]
+            )  # force boundary exactly
             dirn[idx_hit] = 0.0  # no more searching this direction
     return x
 
-def ctrsbox_geometry(xbase, c, g, projections, Delta, d_max_iters=100, d_tol=1e-10, use_fortran=USE_FORTRAN):
+
+def ctrsbox_geometry(
+    xbase,
+    c,
+    g,
+    projections,
+    Delta,
+    d_max_iters=100,
+    d_tol=1e-10,
+    use_fortran=USE_FORTRAN,
+):
     # Given a Lagrange polynomial defined by: L(x) = c + g' * (x - xbase)
     # Maximise |L(x)| in a box + trust region - that is, solve:
     #   max_x  abs(c + g' * (x - xbase))
@@ -611,12 +655,31 @@ def ctrsbox_geometry(xbase, c, g, projections, Delta, d_max_iters=100, d_tol=1e-
     #   max_s  abs(c + g' * s)
     #   s.t.   xbase + s is is feasible w.r.t constraint set C
     #          ||s|| <= Delta
-    smin = ctrsbox_linear(xbase, g, projections, Delta, d_max_iters=100, d_tol=1e-10, use_fortran=use_fortran)  # minimise g' * s
-    smax = ctrsbox_linear(xbase, -g, projections, Delta, d_max_iters=100, d_tol=1e-10, use_fortran=use_fortran)  # maximise g' * s
-    if abs(c + np.dot(g, smin)) >= abs(c + np.dot(g, smax)):  # choose the one with largest absolute value
+    smin = ctrsbox_linear(
+        xbase,
+        g,
+        projections,
+        Delta,
+        d_max_iters=100,
+        d_tol=1e-10,
+        use_fortran=use_fortran,
+    )  # minimise g' * s
+    smax = ctrsbox_linear(
+        xbase,
+        -g,
+        projections,
+        Delta,
+        d_max_iters=100,
+        d_tol=1e-10,
+        use_fortran=use_fortran,
+    )  # maximise g' * s
+    if abs(c + np.dot(g, smin)) >= abs(
+        c + np.dot(g, smax)
+    ):  # choose the one with largest absolute value
         return smin
     else:
         return smax
+
 
 def trsbox_geometry(xbase, c, g, lower, upper, Delta, use_fortran=USE_FORTRAN):
     # Given a Lagrange polynomial defined by: L(x) = c + g' * (x - xbase)
@@ -630,9 +693,15 @@ def trsbox_geometry(xbase, c, g, lower, upper, Delta, use_fortran=USE_FORTRAN):
     #          ||s|| <= Delta
     assert np.all(lower <= xbase + ZERO_THRESH), "xbase violates lower bound"
     assert np.all(xbase - ZERO_THRESH <= upper), "xbase violates upper bound"
-    smin = trsbox_linear(g, lower - xbase, upper - xbase, Delta, use_fortran=use_fortran)  # minimise g' * s
-    smax = trsbox_linear(-g, lower - xbase, upper - xbase, Delta, use_fortran=use_fortran)  # maximise g' * s
-    if abs(c + np.dot(g, smin)) >= abs(c + np.dot(g, smax)):  # choose the one with largest absolute value
+    smin = trsbox_linear(
+        g, lower - xbase, upper - xbase, Delta, use_fortran=use_fortran
+    )  # minimise g' * s
+    smax = trsbox_linear(
+        -g, lower - xbase, upper - xbase, Delta, use_fortran=use_fortran
+    )  # maximise g' * s
+    if abs(c + np.dot(g, smin)) >= abs(
+        c + np.dot(g, smax)
+    ):  # choose the one with largest absolute value
         return xbase + smin
     else:
         return xbase + smax
